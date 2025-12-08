@@ -5,8 +5,10 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 3000,
-    open: false, // Disable auto-opening browser
+    host: '0.0.0.0',
+    port: 5000,
+    open: false,
+    allowedHosts: ['.replit.dev', '.repl.co'],
     proxy: {
       '/api': {
         target: 'http://localhost:8000',

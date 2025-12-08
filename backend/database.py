@@ -21,15 +21,18 @@ async def connect_to_mongo():
     """Create database connection."""
     global client, database
     try:
-        client = AsyncIOMotorClient(MONGODB_URL)
+        client = AsyncIOMotorClient(MONGODB_URL, serverSelectionTimeoutMS=5000)
         # Test the connection
         await client.admin.command("ping")
         database = client[DATABASE_NAME]
         print(f"✅ Connected to MongoDB database: {DATABASE_NAME}")
         return database
-    except ConnectionFailure as e:
-        print(f"❌ Failed to connect to MongoDB: {e}")
-        raise
+    except Exception as e:
+        print(f"⚠️  MongoDB connection failed: {e}")
+        print("⚠️  App will start without database. Database-dependent features will not work.")
+        print("⚠️  Set MONGODB_URL environment variable to enable database features.")
+        database = None
+        return None
 
 
 async def close_mongo_connection():

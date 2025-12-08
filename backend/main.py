@@ -29,7 +29,7 @@ app = FastAPI(title="FreeLy API", version="0.1.0", lifespan=lifespan)
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Frontend URL
+    allow_origins=["*"],  # Allow all origins for Replit proxy
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
