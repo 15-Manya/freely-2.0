@@ -19,7 +19,6 @@ function SignUp() {
       ...formData,
       [e.target.name]: e.target.value
     })
-    // Clear error when user starts typing
     if (error) setError('')
   }
 
@@ -31,7 +30,6 @@ function SignUp() {
     try {
       await signUp(formData.email, formData.password, formData.fullName)
       setSuccess(true)
-      // Navigate to login after successful signup
       setTimeout(() => {
         navigate('/login')
       }, 2000)
@@ -43,88 +41,123 @@ function SignUp() {
   }
 
   return (
-    <div className="signup-container">
-      <div className="signup-card">
-        <h1 className="signup-title">Create Account</h1>
-        <p className="signup-subtitle">Get started with FreeLy</p>
-        
-        {error && (
-          <div className="error-message" role="alert">
-            {error}
+    <div className="auth-container">
+      <div className="auth-branding">
+        <div className="auth-branding-content">
+          <div className="auth-logo">
+            <span className="auth-logo-text">F</span>
           </div>
-        )}
-        
-        {success && (
-          <div className="success-message" role="alert">
-            Account created successfully! Redirecting to sign in...
+          <h1>FreeLy</h1>
+          <p>AI-powered risk analysis and proposal generation for freelancers who want to work smarter.</p>
+          
+          <div className="auth-features">
+            <div className="auth-feature">
+              <div className="auth-feature-icon">&#128202;</div>
+              <span className="auth-feature-text">Analyze client conversations for potential risks</span>
+            </div>
+            <div className="auth-feature">
+              <div className="auth-feature-icon">&#128221;</div>
+              <span className="auth-feature-text">Generate professional proposals in seconds</span>
+            </div>
+            <div className="auth-feature">
+              <div className="auth-feature-icon">&#128170;</div>
+              <span className="auth-feature-text">Make informed decisions with AI insights</span>
+            </div>
           </div>
-        )}
-        
-        <form onSubmit={handleSubmit} className="signup-form">
-          <div className="form-group">
-            <label htmlFor="fullName">Full Name</label>
-            <input
-              type="text"
-              id="fullName"
-              name="fullName"
-              value={formData.fullName}
-              onChange={handleChange}
-              placeholder="Enter your full name"
-              required
-            />
-          </div>
+        </div>
+      </div>
 
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="Enter your email"
-              required
-            />
+      <div className="auth-form-section">
+        <div className="auth-form-container">
+          <div className="auth-form-header">
+            <h2>Create your account</h2>
+            <p>Start your free trial today</p>
           </div>
+          
+          {error && (
+            <div className="auth-message error" role="alert">
+              <span className="auth-message-icon">&#9888;</span>
+              {error}
+            </div>
+          )}
+          
+          {success && (
+            <div className="auth-message success" role="alert">
+              <span className="auth-message-icon">&#10003;</span>
+              Account created successfully! Redirecting...
+            </div>
+          )}
+          
+          <form onSubmit={handleSubmit} className="auth-form">
+            <div className="form-group">
+              <label htmlFor="fullName">Full Name</label>
+              <input
+                type="text"
+                id="fullName"
+                name="fullName"
+                value={formData.fullName}
+                onChange={handleChange}
+                placeholder="Enter your full name"
+                autoComplete="name"
+                required
+              />
+            </div>
 
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Enter your password"
-              required
-            />
+            <div className="form-group">
+              <label htmlFor="email">Email Address</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="you@example.com"
+                autoComplete="email"
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="password">Password</label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Create a strong password"
+                autoComplete="new-password"
+                required
+              />
+            </div>
+
+            <button 
+              type="submit" 
+              className="auth-button"
+              disabled={loading || success}
+            >
+              {loading ? 'Creating account...' : 'Get Started'}
+            </button>
+          </form>
+
+          <div className="auth-footer">
+            <p>
+              Already have an account?{' '}
+              <a
+                href="/login"
+                onClick={(e) => {
+                  e.preventDefault()
+                  navigate('/login')
+                }}
+              >
+                Sign in
+              </a>
+            </p>
           </div>
-
-          <button 
-            type="submit" 
-            className="signup-button"
-            disabled={loading || success}
-          >
-            {loading ? 'Creating Account...' : 'Create Account'}
-          </button>
-        </form>
-
-        <p className="signin-link">
-          Already have an account?{' '}
-          <a
-            href="/login"
-            onClick={(e) => {
-              e.preventDefault()
-              navigate('/login')
-            }}
-          >
-            Sign in
-          </a>
-        </p>
+        </div>
       </div>
     </div>
   )
 }
 
 export default SignUp
-

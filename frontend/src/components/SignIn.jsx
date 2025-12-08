@@ -17,7 +17,6 @@ function SignIn() {
       ...formData,
       [e.target.name]: e.target.value
     })
-    // Clear error when user starts typing
     if (error) setError('')
   }
 
@@ -28,7 +27,6 @@ function SignIn() {
 
     try {
       await signIn(formData.email, formData.password)
-      // Navigate to dashboard home (/) on successful sign in
       navigate('/')
     } catch (err) {
       setError(err.message || 'An error occurred during sign in')
@@ -38,69 +36,102 @@ function SignIn() {
   }
 
   return (
-    <div className="signin-container">
-      <div className="signin-card">
-        <h1 className="signin-title">Sign In</h1>
-        <p className="signin-subtitle">Welcome back to FreeLy</p>
-        
-        {error && (
-          <div className="error-message" role="alert">
-            {error}
+    <div className="auth-container">
+      <div className="auth-branding">
+        <div className="auth-branding-content">
+          <div className="auth-logo">
+            <span className="auth-logo-text">F</span>
           </div>
-        )}
-        
-        <form onSubmit={handleSubmit} className="signin-form">
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="Enter your email"
-              required
-            />
+          <h1>FreeLy</h1>
+          <p>AI-powered risk analysis and proposal generation for freelancers who want to work smarter.</p>
+          
+          <div className="auth-features">
+            <div className="auth-feature">
+              <div className="auth-feature-icon">&#128202;</div>
+              <span className="auth-feature-text">Analyze client conversations for potential risks</span>
+            </div>
+            <div className="auth-feature">
+              <div className="auth-feature-icon">&#128221;</div>
+              <span className="auth-feature-text">Generate professional proposals in seconds</span>
+            </div>
+            <div className="auth-feature">
+              <div className="auth-feature-icon">&#128170;</div>
+              <span className="auth-feature-text">Make informed decisions with AI insights</span>
+            </div>
           </div>
+        </div>
+      </div>
 
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Enter your password"
-              required
-            />
+      <div className="auth-form-section">
+        <div className="auth-form-container">
+          <div className="auth-form-header">
+            <h2>Welcome back</h2>
+            <p>Sign in to continue to FreeLy</p>
           </div>
+          
+          {error && (
+            <div className="auth-message error" role="alert">
+              <span className="auth-message-icon">&#9888;</span>
+              {error}
+            </div>
+          )}
+          
+          <form onSubmit={handleSubmit} className="auth-form">
+            <div className="form-group">
+              <label htmlFor="email">Email Address</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="you@example.com"
+                autoComplete="email"
+                required
+              />
+            </div>
 
-          <button 
-            type="submit" 
-            className="signin-button"
-            disabled={loading}
-          >
-            {loading ? 'Signing In...' : 'Sign In'}
-          </button>
-        </form>
+            <div className="form-group">
+              <label htmlFor="password">Password</label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Enter your password"
+                autoComplete="current-password"
+                required
+              />
+            </div>
 
-        <p className="signup-link">
-          Don't have an account?{' '}
-          <a
-            href="/"
-            onClick={(e) => {
-              e.preventDefault()
-              navigate('/')
-            }}
-          >
-            Sign Up
-          </a>
-        </p>
+            <button 
+              type="submit" 
+              className="auth-button"
+              disabled={loading}
+            >
+              {loading ? 'Signing in...' : 'Sign In'}
+            </button>
+          </form>
+
+          <div className="auth-footer">
+            <p>
+              Don't have an account?{' '}
+              <a
+                href="/"
+                onClick={(e) => {
+                  e.preventDefault()
+                  navigate('/')
+                }}
+              >
+                Create one
+              </a>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   )
 }
 
 export default SignIn
-
