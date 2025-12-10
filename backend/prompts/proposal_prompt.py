@@ -24,7 +24,12 @@ Your response must be a valid JSON object with the following structure:
     ],
     "questions_for_clarification": [
        "<CRITICAL: List specific, actionable questions the freelancer MUST ask the client to resolve the ambiguities identified above. E.g., 'How many initial logo concepts are expected?', 'What is the exact budget for this project?''>"
-    ]
+    ],
+    "suggested_negotiations": [
+       "<ONLY include if there are actual negotiation opportunities or suggestions. List specific negotiation points, pricing strategies, or terms the freelancer could propose to improve the deal. E.g., 'Consider proposing a 50% upfront deposit to secure the project timeline', 'Suggest bundling additional services at a discounted rate', 'Propose milestone-based payments for better cash flow'. If there are no meaningful negotiation suggestions, return an empty array [].>"
+    ],
+    "suggested_timeline": "<ONLY include if the chat does NOT mention any timeline, deadline, or time-related information. If the client mentioned a timeline/deadline in the chat, return null. If no timeline was mentioned, provide a suggested timeline based on the project scope (e.g., 'Suggested timeline: 3-4 weeks from project start, depending on timely client feedback').>",
+    "suggested_milestones": "<ONLY include if the chat does NOT mention any milestones, phases, or task breakdown. If the client mentioned milestones/phases in the chat, return null. If no milestones were mentioned, provide a suggested milestone breakdown based on the project scope (e.g., 'Suggested milestones: 1) Initial concept (Week 1), 2) Revisions (Week 2), 3) Final delivery (Week 3)').>"
   }},
   "proposal_data": {{
     "project_details": "<General overview of the project>",

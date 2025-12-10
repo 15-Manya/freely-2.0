@@ -98,11 +98,29 @@ def validate_proposal(proposal: dict) -> bool:
     required_analysis_fields = [
         "client_goals",
         "identified_risks_and_ambiguities",
-        "questions_for_clarification"
+        "questions_for_clarification",
+        "suggested_negotiations",
+        "suggested_timeline",
+        "suggested_milestones"
     ]
     for field in required_analysis_fields:
         if field not in project_analysis:
             raise ValueError(f"Missing required field in project_analysis: {field}")
+    
+    # Validate suggested_negotiations is an array (can be empty)
+    suggested_negotiations = project_analysis.get("suggested_negotiations", [])
+    if not isinstance(suggested_negotiations, list):
+        raise ValueError("suggested_negotiations must be an array")
+    
+    # Validate suggested_timeline is a string or null
+    suggested_timeline = project_analysis.get("suggested_timeline")
+    if suggested_timeline is not None and not isinstance(suggested_timeline, str):
+        raise ValueError("suggested_timeline must be a string or null")
+    
+    # Validate suggested_milestones is a string or null
+    suggested_milestones = project_analysis.get("suggested_milestones")
+    if suggested_milestones is not None and not isinstance(suggested_milestones, str):
+        raise ValueError("suggested_milestones must be a string or null")
     
     # Validate identified_risks_and_ambiguities (CRITICAL SECTION)
     identified_risks = project_analysis.get("identified_risks_and_ambiguities", [])
