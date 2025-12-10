@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import './Dashboard.css'
 
-function DashboardLayout({ title, children }) {
+function DashboardLayout({ title, children, hideSidebar = false }) {
   const { currentUser, signOut } = useAuth()
   const navigate = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -42,11 +42,17 @@ function DashboardLayout({ title, children }) {
         onClick={closeSidebar}
       />
       
-      <aside className={`dashboard-sidebar ${sidebarOpen ? 'open' : ''}`}>
+      <aside className={`dashboard-sidebar ${sidebarOpen ? 'open' : ''} ${hideSidebar ? 'hidden' : ''}`}>
         <div className="sidebar-header">
           <div className="sidebar-logo">
-            <div className="sidebar-logo-icon">F</div>
-            <span className="sidebar-logo-text">FreeLy</span>
+            <svg className="logo-icon" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M16 8C18.2091 8 20 9.79086 20 12C20 14.2091 18.2091 16 16 16C13.7909 16 12 14.2091 12 12C12 9.79086 13.7909 8 16 8Z" fill="#374151"/>
+              <path d="M10 18C10 17.4477 10.4477 17 11 17H21C21.5523 17 22 17.4477 22 18V20C22 20.5523 21.5523 21 21 21H11C10.4477 21 10 20.5523 10 20V18Z" fill="#374151"/>
+              <path d="M6 22C6 21.4477 6.44772 21 7 21H25C25.5523 21 26 21.4477 26 22V28C26 28.5523 25.5523 29 25 29H7C6.44772 29 6 28.5523 6 28V22Z" fill="#374151"/>
+            </svg>
+            <span className="sidebar-logo-text">
+              <span className="logo-blue">FreeL</span><span className="logo-gray">y</span>
+            </span>
           </div>
         </div>
 
@@ -58,7 +64,6 @@ function DashboardLayout({ title, children }) {
               className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}
               onClick={closeSidebar}
             >
-              <span className="sidebar-nav-item-icon">&#127968;</span>
               Dashboard
             </NavLink>
             <NavLink 
@@ -66,7 +71,6 @@ function DashboardLayout({ title, children }) {
               className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}
               onClick={closeSidebar}
             >
-              <span className="sidebar-nav-item-icon">&#128200;</span>
               Workflow Monitor
             </NavLink>
             <NavLink 
@@ -74,7 +78,6 @@ function DashboardLayout({ title, children }) {
               className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}
               onClick={closeSidebar}
             >
-              <span className="sidebar-nav-item-icon">&#128196;</span>
               Invoice Manager
             </NavLink>
           </div>
@@ -99,7 +102,6 @@ function DashboardLayout({ title, children }) {
             className="sidebar-signout-btn"
             onClick={handleSignOut}
           >
-            <span>&#128682;</span>
             Sign Out
           </button>
         </div>
@@ -109,7 +111,7 @@ function DashboardLayout({ title, children }) {
         <header className="dashboard-topbar">
           <button 
             type="button" 
-            className="mobile-menu-btn"
+            className={`mobile-menu-btn ${hideSidebar ? 'always-visible' : ''}`}
             onClick={() => setSidebarOpen(true)}
           >
             <span />

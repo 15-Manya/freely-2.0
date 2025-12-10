@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import DashboardLayout from './DashboardLayout'
-import { createRiskAnalysis, getRiskAnalyses, deleteRiskAnalysis, createProposal, getProposals, deleteProposal } from '../api/client'
+import { createRiskAnalysis, getRiskAnalyses, deleteRiskAnalysis, createProposal, getProposals, deleteProposal, generateProposalFromRiskAnalysis, generateRiskReportFromProposal } from '../api/client'
 import './Dashboard.css'
 
 function DashboardPage() {
@@ -15,6 +15,10 @@ function DashboardPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [deletingId, setDeletingId] = useState(null)
+  const [openMenuId, setOpenMenuId] = useState(null)
+  const [generatingProposalId, setGeneratingProposalId] = useState(null)
+  const [acceptingAnalysisId, setAcceptingAnalysisId] = useState(null)
+  const [rejectingAnalysisId, setRejectingAnalysisId] = useState(null)
 
   const [newProposalOpen, setNewProposalOpen] = useState(false)
   const [selectedProposalType, setSelectedProposalType] = useState(null)
@@ -22,6 +26,10 @@ function DashboardPage() {
   const [proposalLoading, setProposalLoading] = useState(false)
   const [proposalError, setProposalError] = useState('')
   const [deletingProposalId, setDeletingProposalId] = useState(null)
+  const [openProposalMenuId, setOpenProposalMenuId] = useState(null)
+  const [generatingRiskReportId, setGeneratingRiskReportId] = useState(null)
+  const [acceptingProposalId, setAcceptingProposalId] = useState(null)
+  const [rejectingProposalId, setRejectingProposalId] = useState(null)
 
   const [formData, setFormData] = useState({
     clientName: '',
@@ -33,6 +41,12 @@ function DashboardPage() {
     chatFile: null,
     textInput: ''
   })
+
+  const formatStatus = (status) => {
+    if (!status) return ''
+    // Capitalize first letter and replace underscores with spaces
+    return status.charAt(0).toUpperCase() + status.slice(1).replace(/_/g, ' ')
+  }
 
   useEffect(() => {
     if (activeTab === 'risk' && currentUser) {
@@ -51,6 +65,18 @@ function DashboardPage() {
       return () => clearTimeout(timer)
     }
   }, [activeTab, currentUser])
+
+  // Close menus when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.menu-container')) {
+        setOpenMenuId(null)
+        setOpenProposalMenuId(null)
+      }
+    }
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [])
 
   const loadAnalyses = async () => {
     if (!currentUser) return
@@ -77,10 +103,11 @@ function DashboardPage() {
   }
 
   const handleDeleteAnalysis = async (analysisId, e) => {
-    e.stopPropagation()
+    if (e) e.stopPropagation()
     if (!window.confirm('Are you sure you want to delete this report?')) return
     try {
       setDeletingId(analysisId)
+      setOpenMenuId(null)
       await deleteRiskAnalysis(analysisId)
       setAnalyses(analyses.filter(a => a._id !== analysisId))
     } catch (err) {
@@ -91,16 +118,103 @@ function DashboardPage() {
   }
 
   const handleDeleteProposal = async (proposalId, e) => {
-    e.stopPropagation()
+    if (e) e.stopPropagation()
     if (!window.confirm('Are you sure you want to delete this proposal?')) return
     try {
       setDeletingProposalId(proposalId)
+      setOpenProposalMenuId(null)
       await deleteProposal(proposalId)
       setProposals(proposals.filter(p => p._id !== proposalId))
     } catch (err) {
       alert(err.message || 'Failed to delete proposal.')
     } finally {
       setDeletingProposalId(null)
+    }
+  }
+
+  const handleAcceptAnalysis = async (analysisId, e) => {
+    if (e) e.stopPropagation()
+    try {
+      setAcceptingAnalysisId(analysisId)
+      setOpenMenuId(null)
+      // TODO: Implement accept project API call
+      alert('Project accepted!')
+    } catch (err) {
+      alert(err.message || 'Failed to accept project.')
+    } finally {
+      setAcceptingAnalysisId(null)
+    }
+  }
+
+  const handleRejectAnalysis = async (analysisId, e) => {
+    if (e) e.stopPropagation()
+    if (!window.confirm('Are you sure you want to reject this project?')) return
+    try {
+      setRejectingAnalysisId(analysisId)
+      setOpenMenuId(null)
+      // TODO: Implement reject project API call
+      alert('Project rejected!')
+    } catch (err) {
+      alert(err.message || 'Failed to reject project.')
+    } finally {
+      setRejectingAnalysisId(null)
+    }
+  }
+
+  const handleGenerateProposalFromAnalysis = async (analysisId, e) => {
+    if (e) e.stopPropagation()
+    try {
+      setGeneratingProposalId(analysisId)
+      setOpenMenuId(null)
+      const proposal = await generateProposalFromRiskAnalysis(analysisId)
+      navigate(`/proposal/${proposal._id}`)
+    } catch (err) {
+      alert(err.message || 'Failed to generate proposal.')
+    } finally {
+      setGeneratingProposalId(null)
+    }
+  }
+
+  const handleAcceptProposal = async (proposalId, e) => {
+    if (e) e.stopPropagation()
+    try {
+      setAcceptingProposalId(proposalId)
+      setOpenProposalMenuId(null)
+      // TODO: Implement accept project API call
+      alert('Project accepted!')
+    } catch (err) {
+      alert(err.message || 'Failed to accept project.')
+    } finally {
+      setAcceptingProposalId(null)
+    }
+  }
+
+  const handleRejectProposal = async (proposalId, e) => {
+    if (e) e.stopPropagation()
+    if (!window.confirm('Are you sure you want to reject this project?')) return
+    try {
+      setRejectingProposalId(proposalId)
+      setOpenProposalMenuId(null)
+      // TODO: Implement reject project API call
+      alert('Project rejected!')
+    } catch (err) {
+      alert(err.message || 'Failed to reject project.')
+    } finally {
+      setRejectingProposalId(null)
+    }
+  }
+
+  const handleGenerateRiskReportFromProposal = async (proposalId, e) => {
+    if (e) e.stopPropagation()
+    try {
+      setGeneratingRiskReportId(proposalId)
+      setOpenProposalMenuId(null)
+      const analysis = await generateRiskReportFromProposal(proposalId)
+      navigate(`/risk-analysis/${analysis._id}`)
+    } catch (err) {
+      alert(err.message || 'Failed to generate risk report.')
+    } finally {
+      setGeneratingRiskReportId(null)
     }
   }
 
@@ -258,7 +372,6 @@ function DashboardPage() {
                 <div className="items-list">
                   {analyses.map((analysis) => (
                     <div key={analysis._id} className="list-item">
-                      <div className="list-item-icon">&#128202;</div>
                       <div 
                         className="list-item-content"
                         onClick={() => navigate(`/risk-analysis/${analysis._id}`)}
@@ -272,24 +385,68 @@ function DashboardPage() {
                       </div>
                       <div className="list-item-actions">
                         <span className={`status-badge ${analysis.status}`}>
-                          {analysis.status}
+                          {formatStatus(analysis.status)}
                         </span>
-                        <button
-                          type="button"
-                          className="delete-btn"
-                          onClick={(e) => handleDeleteAnalysis(analysis._id, e)}
-                          disabled={deletingId === analysis._id}
-                          title="Delete"
-                        >
-                          {deletingId === analysis._id ? '...' : '×'}
-                        </button>
+                        <div className="menu-container">
+                          <button
+                            type="button"
+                            className="menu-trigger"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setOpenMenuId(openMenuId === analysis._id ? null : analysis._id)
+                            }}
+                            title="More options"
+                          >
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <circle cx="8" cy="3" r="1.5" fill="currentColor"/>
+                              <circle cx="8" cy="8" r="1.5" fill="currentColor"/>
+                              <circle cx="8" cy="13" r="1.5" fill="currentColor"/>
+                            </svg>
+                          </button>
+                          {openMenuId === analysis._id && (
+                            <div className="menu-dropdown">
+                              <button
+                                type="button"
+                                className="menu-item"
+                                onClick={(e) => handleAcceptAnalysis(analysis._id, e)}
+                                disabled={acceptingAnalysisId === analysis._id}
+                              >
+                                {acceptingAnalysisId === analysis._id ? 'Accepting...' : 'Accept Project'}
+                              </button>
+                              <button
+                                type="button"
+                                className="menu-item"
+                                onClick={(e) => handleRejectAnalysis(analysis._id, e)}
+                                disabled={rejectingAnalysisId === analysis._id}
+                              >
+                                {rejectingAnalysisId === analysis._id ? 'Rejecting...' : 'Reject Project'}
+                              </button>
+                              <button
+                                type="button"
+                                className="menu-item"
+                                onClick={(e) => handleGenerateProposalFromAnalysis(analysis._id, e)}
+                                disabled={generatingProposalId === analysis._id || !analysis?.input_data?.chat_content}
+                              >
+                                {generatingProposalId === analysis._id ? 'Generating...' : 'Generate Proposal'}
+                              </button>
+                              <div className="menu-divider"></div>
+                              <button
+                                type="button"
+                                className="menu-item delete-menu-item"
+                                onClick={(e) => handleDeleteAnalysis(analysis._id, e)}
+                                disabled={deletingId === analysis._id}
+                              >
+                                {deletingId === analysis._id ? 'Deleting...' : 'Delete'}
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
                 <div className="empty-state">
-                  <div className="empty-state-icon">&#128202;</div>
                   <h3 className="empty-state-title">No analyses yet</h3>
                   <p className="empty-state-text">Create your first risk analysis to get started.</p>
                 </div>
@@ -301,7 +458,6 @@ function DashboardPage() {
                 <div className="items-list">
                   {proposals.map((proposal) => (
                     <div key={proposal._id} className="list-item">
-                      <div className="list-item-icon">&#128221;</div>
                       <div 
                         className="list-item-content"
                         onClick={() => navigate(`/proposal/${proposal._id}`)}
@@ -315,24 +471,68 @@ function DashboardPage() {
                       </div>
                       <div className="list-item-actions">
                         <span className={`status-badge ${proposal.status}`}>
-                          {proposal.status}
+                          {formatStatus(proposal.status)}
                         </span>
-                        <button
-                          type="button"
-                          className="delete-btn"
-                          onClick={(e) => handleDeleteProposal(proposal._id, e)}
-                          disabled={deletingProposalId === proposal._id}
-                          title="Delete"
-                        >
-                          {deletingProposalId === proposal._id ? '...' : '×'}
-                        </button>
+                        <div className="menu-container">
+                          <button
+                            type="button"
+                            className="menu-trigger"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setOpenProposalMenuId(openProposalMenuId === proposal._id ? null : proposal._id)
+                            }}
+                            title="More options"
+                          >
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <circle cx="8" cy="3" r="1.5" fill="currentColor"/>
+                              <circle cx="8" cy="8" r="1.5" fill="currentColor"/>
+                              <circle cx="8" cy="13" r="1.5" fill="currentColor"/>
+                            </svg>
+                          </button>
+                          {openProposalMenuId === proposal._id && (
+                            <div className="menu-dropdown">
+                              <button
+                                type="button"
+                                className="menu-item"
+                                onClick={(e) => handleAcceptProposal(proposal._id, e)}
+                                disabled={acceptingProposalId === proposal._id}
+                              >
+                                {acceptingProposalId === proposal._id ? 'Accepting...' : 'Accept Project'}
+                              </button>
+                              <button
+                                type="button"
+                                className="menu-item"
+                                onClick={(e) => handleRejectProposal(proposal._id, e)}
+                                disabled={rejectingProposalId === proposal._id}
+                              >
+                                {rejectingProposalId === proposal._id ? 'Rejecting...' : 'Reject Project'}
+                              </button>
+                              <button
+                                type="button"
+                                className="menu-item"
+                                onClick={(e) => handleGenerateRiskReportFromProposal(proposal._id, e)}
+                                disabled={generatingRiskReportId === proposal._id || !proposal?.input_data?.chat_content}
+                              >
+                                {generatingRiskReportId === proposal._id ? 'Generating...' : 'Generate Risk Report'}
+                              </button>
+                              <div className="menu-divider"></div>
+                              <button
+                                type="button"
+                                className="menu-item delete-menu-item"
+                                onClick={(e) => handleDeleteProposal(proposal._id, e)}
+                                disabled={deletingProposalId === proposal._id}
+                              >
+                                {deletingProposalId === proposal._id ? 'Deleting...' : 'Delete'}
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
                 <div className="empty-state">
-                  <div className="empty-state-icon">&#128221;</div>
                   <h3 className="empty-state-title">No proposals yet</h3>
                   <p className="empty-state-text">Create your first proposal to get started.</p>
                 </div>
@@ -424,7 +624,6 @@ function DashboardPage() {
                         </div>
                       ) : (
                         <>
-                          <div className="file-upload-icon">&#128194;</div>
                           <p className="file-upload-text">Click to browse files</p>
                           <p className="file-upload-hint">TXT, DOCX, CSV supported</p>
                         </>
@@ -525,7 +724,6 @@ function DashboardPage() {
                         </div>
                       ) : (
                         <>
-                          <div className="file-upload-icon">&#128194;</div>
                           <p className="file-upload-text">Click to browse files</p>
                           <p className="file-upload-hint">TXT, DOCX, CSV supported</p>
                         </>

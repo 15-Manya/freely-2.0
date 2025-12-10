@@ -12,7 +12,6 @@ function RiskAnalysisReportPage() {
   const [error, setError] = useState('')
   const [deleting, setDeleting] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const [showDebugText, setShowDebugText] = useState(false)
   const [generatingProposal, setGeneratingProposal] = useState(false)
 
   useEffect(() => {
@@ -80,7 +79,7 @@ function RiskAnalysisReportPage() {
 
   if (loading) {
     return (
-      <DashboardLayout title="Risk Analysis Report">
+      <DashboardLayout title="Risk Analysis Report" hideSidebar={true}>
         <div className="user-info">
           <div className="loading-state">
             <div className="spinner"></div>
@@ -93,7 +92,7 @@ function RiskAnalysisReportPage() {
 
   if (error) {
     return (
-      <DashboardLayout title="Risk Analysis Report">
+      <DashboardLayout title="Risk Analysis Report" hideSidebar={true}>
         <div className="user-info">
           <div className="error-state">
             <p>{error}</p>
@@ -112,7 +111,7 @@ function RiskAnalysisReportPage() {
 
   if (!analysis) {
     return (
-      <DashboardLayout title="Risk Analysis Report">
+      <DashboardLayout title="Risk Analysis Report" hideSidebar={true}>
         <div className="user-info">
           <p>Analysis not found.</p>
           <button
@@ -146,33 +145,6 @@ function RiskAnalysisReportPage() {
         </div>
 
         <div className="report-content">
-          {/* Debug: Show extracted text */}
-          {analysis.input_data?.chat_content && (
-            <div className="debug-section">
-              <button
-                type="button"
-                className="debug-toggle-button"
-                onClick={() => setShowDebugText(!showDebugText)}
-              >
-                {showDebugText ? '▼' : '▶'} Debug: View Extracted Text
-              </button>
-              {showDebugText && (
-                <div className="debug-text-container">
-                  <div className="debug-text-header">
-                    <h4>Extracted Text from Document</h4>
-                    <span className="debug-text-info">
-                      File: {analysis.input_data.file_name || 'Unknown'} • 
-                      Size: {analysis.input_data.file_size ? `${(analysis.input_data.file_size / 1024).toFixed(2)} KB` : 'Unknown'}
-                    </span>
-                  </div>
-                  <div className="debug-text-content">
-                    <pre>{analysis.input_data.chat_content}</pre>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
           {analysis.status === 'pending' && (
             <div className="report-status-message">
               <p>Your analysis is being processed. This may take a few moments.</p>
@@ -202,6 +174,7 @@ function RiskAnalysisReportPage() {
 
           {analysis.status === 'completed' && analysis.results && (
             <div className="report-results">
+              {renderRiskMeter(analysis.results, analysis.input_data)}
               {renderAnalysisResults(analysis.results)}
             </div>
           )}
@@ -279,6 +252,129 @@ function RiskAnalysisReportPage() {
   )
 }
 
+function renderRiskMeter(results, inputData) {
+  if (!results || typeof results !== 'object') {
+    return null
+  }
+
+  const riskScore = results.risk_score || 0
+  
+  // Convert score from 0-10 to 0-100 scale
+  const riskScore100 = riskScore * 10
+  
+  // Determine meter color based on score (0-100 scale)
+  const getMeterColor = (score) => {
+    if (score <= 30) return '#10b981' // Green
+    if (score <= 60) return '#f59e0b' // Yellow/Orange
+    return '#ef4444' // Red
+  }
+
+  const meterColor = getMeterColor(riskScore100)
+  const meterPercentage = riskScore100
+
+  const handleViewExtractedText = () => {
+    if (inputData?.chat_content) {
+      const newWindow = window.open('', '_blank')
+      if (newWindow) {
+        newWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>Extracted Text - ${inputData.file_name || 'Document'}</title>
+              <style>
+                body {
+                  font-family: system-ui, -apple-system, sans-serif;
+                  line-height: 1.6;
+                  color: #374151;
+                  max-width: 900px;
+                  margin: 40px auto;
+                  padding: 20px;
+                  background: #f9fafb;
+                }
+                h1 {
+                  color: #000480;
+                  margin-bottom: 8px;
+                }
+                .file-info {
+                  color: #6b7280;
+                  font-size: 14px;
+                  margin-bottom: 24px;
+                }
+                pre {
+                  background: white;
+                  padding: 20px;
+                  border-radius: 8px;
+                  border: 1px solid #e5e7eb;
+                  overflow-x: auto;
+                  white-space: pre-wrap;
+                  word-wrap: break-word;
+                }
+              </style>
+            </head>
+            <body>
+              <h1>Extracted Text from Document</h1>
+              <div class="file-info">
+                File: ${inputData.file_name || 'Unknown'} • 
+                Size: ${inputData.file_size ? `${(inputData.file_size / 1024).toFixed(2)} KB` : 'Unknown'}
+              </div>
+              <pre>${inputData.chat_content}</pre>
+            </body>
+          </html>
+        `)
+        newWindow.document.close()
+      }
+    }
+  }
+
+  return (
+    <div className="risk-meter-header">
+      <div className="risk-meter-display">
+        <div className="risk-meter-gauge">
+          <div className="risk-score-above">
+            <span className="risk-score">Risk Score: {riskScore100}/100</span>
+          </div>
+          <div className="risk-meter-container">
+            <div 
+              className="risk-meter-fill"
+              style={{
+                width: `${meterPercentage}%`,
+                backgroundColor: meterColor
+              }}
+            ></div>
+            <div className="risk-meter-scale">
+              {Array.from({ length: 100 }, (_, i) => i + 1).map((num) => (
+                <span 
+                  key={num} 
+                  className={`scale-mark ${riskScore100 >= num ? 'active' : ''}`}
+                  style={{
+                    backgroundColor: riskScore100 >= num ? meterColor : '#e5e7eb'
+                  }}
+                ></span>
+              ))}
+            </div>
+          </div>
+          <div className="risk-meter-labels">
+            <span className="meter-label-start">Low Risk</span>
+            <span className="meter-label-end">High Risk</span>
+          </div>
+        </div>
+      </div>
+      {/* Debug: Show extracted text */}
+      {inputData?.chat_content && (
+        <div className="debug-section">
+          <button
+            type="button"
+            className="debug-toggle-button"
+            onClick={handleViewExtractedText}
+          >
+            View Extracted Text
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function renderAnalysisResults(results) {
   if (!results || typeof results !== 'object') {
     return <p>No results available.</p>
@@ -294,9 +390,6 @@ function renderAnalysisResults(results) {
     )
   }
 
-  const riskScore = results.risk_score || 0
-  const riskLevel = results.risk_level || 'UNKNOWN'
-  const riskMeter = results.risk_meter || '🟡'
   const executiveSummary = results.executive_summary || ''
   const pros = results.pros || []
   const cons = results.cons || []
@@ -306,55 +399,8 @@ function renderAnalysisResults(results) {
   const protectiveMeasures = results.protective_measures || []
   const keyQuotes = results.key_quotes || []
 
-  // Determine meter color based on score
-  const getMeterColor = (score) => {
-    if (score <= 3) return '#10b981' // Green
-    if (score <= 6) return '#f59e0b' // Yellow/Orange
-    return '#ef4444' // Red
-  }
-
-  const meterColor = getMeterColor(riskScore)
-  const meterPercentage = (riskScore / 10) * 100
-
   return (
     <div className="analysis-results">
-      {/* Risk Meter Header */}
-      <div className="risk-meter-header">
-        <div className="risk-meter-display">
-          <div className="risk-meter-gauge">
-            <div className="risk-meter-container">
-              <div 
-                className="risk-meter-fill"
-                style={{
-                  width: `${meterPercentage}%`,
-                  backgroundColor: meterColor
-                }}
-              ></div>
-              <div className="risk-meter-scale">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                  <span 
-                    key={num} 
-                    className={`scale-mark ${riskScore >= num ? 'active' : ''}`}
-                    style={{
-                      backgroundColor: riskScore >= num ? meterColor : '#e5e7eb'
-                    }}
-                  ></span>
-                ))}
-              </div>
-            </div>
-            <div className="risk-meter-labels">
-              <span className="meter-label-start">Low Risk</span>
-              <span className="meter-label-end">High Risk</span>
-            </div>
-          </div>
-          <div className="risk-meter-info">
-            <h2 className="risk-score">Risk Score: {riskScore}/10</h2>
-            <span className={`risk-level risk-level-${riskLevel.toLowerCase()}`}>
-              {riskLevel}
-            </span>
-          </div>
-        </div>
-      </div>
 
       {/* Executive Summary */}
       {executiveSummary && (
@@ -460,6 +506,11 @@ function renderAnalysisResults(results) {
       {protectiveMeasures.length > 0 && (
         <div className="protective-measures">
           <h3>🛡️ Protective Measures</h3>
+          {recommendation && recommendation.toLowerCase().includes('decline') && (
+            <p className="protective-measures-note">
+              If you wish to proceed further, these are the suggested measures to follow:
+            </p>
+          )}
           <ul>
             {protectiveMeasures.map((measure, index) => (
               <li key={index}>{measure}</li>

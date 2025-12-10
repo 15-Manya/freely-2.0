@@ -51,12 +51,32 @@
   color: var(--primary-600);
 }
 
+.auth-logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.auth-logo-container .logo-icon {
+  flex-shrink: 0;
+}
+
 .auth-branding h1 {
   font-size: 42px;
   font-weight: 800;
   color: white;
-  margin: 0 0 16px 0;
+  margin: 0;
   letter-spacing: -1px;
+}
+
+.logo-blue {
+  color: #000480;
+}
+
+.logo-gray {
+  color: #374151;
 }
 
 .auth-branding p {
@@ -203,7 +223,7 @@
 
 .auth-button:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 4, 128, 0.4);
 }
 
 .auth-button:hover:not(:disabled)::before {

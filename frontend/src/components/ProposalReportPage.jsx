@@ -249,7 +249,7 @@ function ProposalReportPage() {
   }
 
   return (
-    <DashboardLayout title="Proposal Report">
+    <DashboardLayout title="Proposal Report" hideSidebar={true}>
       <div className="user-info">
         <div className="report-header">
           <div>
@@ -382,7 +382,7 @@ function ProposalReportPage() {
                                     font-weight: 700;
                                   }
                                   h3 {
-                                    color: #111827;
+                                    color: #000480;
                                     margin-top: 20px;
                                     margin-bottom: 10px;
                                     font-size: 18px;
@@ -390,7 +390,7 @@ function ProposalReportPage() {
                                   }
                                   strong {
                                     font-weight: 600;
-                                    color: #111827;
+                                    color: #000480;
                                   }
                                   ul {
                                     margin: 12px 0;
@@ -446,65 +446,179 @@ function ProposalReportPage() {
                   </div>
                 </div>
                 {isEditMode ? (
-                  <div className="proposal-edit-container">
-                    <textarea
-                      className="proposal-edit-textarea"
-                      value={editedProposal}
-                      onChange={(e) => setEditedProposal(e.target.value)}
-                      placeholder="Edit the proposal text here..."
-                    />
-                    <div className="proposal-edit-actions">
-                      <button
-                        type="button"
-                        className="secondary-button"
-                        onClick={() => {
-                          setIsEditMode(false)
-                          setEditedProposal('')
-                        }}
-                        disabled={saving}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="button"
-                        className="primary-button"
-                        onClick={async () => {
-                          setSaving(true)
-                          try {
-                            // Save edited proposal via API (this will also update history)
-                            await saveEditedProposal(proposalId, editedProposal)
-                            
-                            // Reload proposal to get updated version
-                            await loadProposal()
-                            
-                            // Reload history to update undo/redo buttons
-                            await loadProposalHistory()
-                            
-                            // Exit edit mode
+                  <div className="proposal-layout">
+                    <div className="proposal-edit-container">
+                      <textarea
+                        className="proposal-edit-textarea"
+                        value={editedProposal}
+                        onChange={(e) => setEditedProposal(e.target.value)}
+                        placeholder="Edit the proposal text here..."
+                      />
+                      <div className="proposal-edit-actions">
+                        <button
+                          type="button"
+                          className="secondary-button"
+                          onClick={() => {
                             setIsEditMode(false)
                             setEditedProposal('')
-                          } catch (err) {
-                            console.error('Failed to save proposal:', err)
-                            alert('Failed to save proposal. Please try again.')
-                          } finally {
-                            setSaving(false)
-                          }
-                        }}
-                        disabled={saving}
-                      >
-                        {saving ? 'Saving...' : 'Save Changes'}
-                      </button>
+                          }}
+                          disabled={saving}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          className="primary-button"
+                          onClick={async () => {
+                            setSaving(true)
+                            try {
+                              // Save edited proposal via API (this will also update history)
+                              await saveEditedProposal(proposalId, editedProposal)
+                              
+                              // Reload proposal to get updated version
+                              await loadProposal()
+                              
+                              // Reload history to update undo/redo buttons
+                              await loadProposalHistory()
+                              
+                              // Exit edit mode
+                              setIsEditMode(false)
+                              setEditedProposal('')
+                            } catch (err) {
+                              console.error('Failed to save proposal:', err)
+                              alert('Failed to save proposal. Please try again.')
+                            } finally {
+                              setSaving(false)
+                            }
+                          }}
+                          disabled={saving}
+                        >
+                          {saving ? 'Saving...' : 'Save Changes'}
+                        </button>
+                      </div>
                     </div>
+                    {proposal.results && (proposal.results.project_analysis || proposal.results.proposal_data) && (
+                      <div className="proposal-analysis-sidebar">
+                        <h3>Analysis & Suggestions</h3>
+                        
+                        {proposal.results.project_analysis?.identified_risks_and_ambiguities && 
+                         proposal.results.project_analysis.identified_risks_and_ambiguities.length > 0 && (
+                          <div className="analysis-section">
+                            <h4>Ambiguities & Loopholes</h4>
+                            <ul>
+                              {proposal.results.project_analysis.identified_risks_and_ambiguities.map((risk, idx) => (
+                                <li key={idx}>{risk}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {proposal.results.project_analysis?.questions_for_clarification && 
+                         proposal.results.project_analysis.questions_for_clarification.length > 0 && (
+                          <div className="analysis-section">
+                            <h4>Questions for Clarification</h4>
+                            <ul>
+                              {proposal.results.project_analysis.questions_for_clarification.map((question, idx) => (
+                                <li key={idx}>{question}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {proposal.results.proposal_data?.timeline && (
+                          <div className="analysis-section">
+                            <h4>Timeline</h4>
+                            <p>{proposal.results.proposal_data.timeline}</p>
+                          </div>
+                        )}
+
+                        {proposal.results.proposal_data?.pricing && (
+                          <div className="analysis-section">
+                            <h4>Pricing & Negotiations</h4>
+                            <p>{proposal.results.proposal_data.pricing}</p>
+                          </div>
+                        )}
+
+                        {proposal.results.proposal_data?.client_requirements && 
+                         proposal.results.proposal_data.client_requirements.length > 0 && (
+                          <div className="analysis-section">
+                            <h4>Client Requirements</h4>
+                            <ul>
+                              {proposal.results.proposal_data.client_requirements.map((req, idx) => (
+                                <li key={idx}>{req}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ) : (
-                  <div 
-                    className="proposal-content"
-                    dangerouslySetInnerHTML={{
-                      __html: proposal.results.formatted_proposal 
-                        ? formatProposalContent(proposal.results.formatted_proposal)
-                        : 'Proposal content will appear here once generated.'
-                    }}
-                  />
+                  <div className="proposal-layout">
+                    <div 
+                      className="proposal-content"
+                      dangerouslySetInnerHTML={{
+                        __html: proposal.results.formatted_proposal 
+                          ? formatProposalContent(proposal.results.formatted_proposal)
+                          : 'Proposal content will appear here once generated.'
+                      }}
+                    />
+                    {proposal.results && (proposal.results.project_analysis || proposal.results.proposal_data) && (
+                      <div className="proposal-analysis-sidebar">
+                        <h3>Analysis & Suggestions</h3>
+                        
+                        {proposal.results.project_analysis?.identified_risks_and_ambiguities && 
+                         proposal.results.project_analysis.identified_risks_and_ambiguities.length > 0 && (
+                          <div className="analysis-section">
+                            <h4>Ambiguities & Loopholes</h4>
+                            <ul>
+                              {proposal.results.project_analysis.identified_risks_and_ambiguities.map((risk, idx) => (
+                                <li key={idx}>{risk}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {proposal.results.project_analysis?.questions_for_clarification && 
+                         proposal.results.project_analysis.questions_for_clarification.length > 0 && (
+                          <div className="analysis-section">
+                            <h4>Questions for Clarification</h4>
+                            <ul>
+                              {proposal.results.project_analysis.questions_for_clarification.map((question, idx) => (
+                                <li key={idx}>{question}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {proposal.results.proposal_data?.timeline && (
+                          <div className="analysis-section">
+                            <h4>Timeline</h4>
+                            <p>{proposal.results.proposal_data.timeline}</p>
+                          </div>
+                        )}
+
+                        {proposal.results.proposal_data?.pricing && (
+                          <div className="analysis-section">
+                            <h4>Pricing & Negotiations</h4>
+                            <p>{proposal.results.proposal_data.pricing}</p>
+                          </div>
+                        )}
+
+                        {proposal.results.proposal_data?.client_requirements && 
+                         proposal.results.proposal_data.client_requirements.length > 0 && (
+                          <div className="analysis-section">
+                            <h4>Client Requirements</h4>
+                            <ul>
+                              {proposal.results.proposal_data.client_requirements.map((req, idx) => (
+                                <li key={idx}>{req}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             </div>

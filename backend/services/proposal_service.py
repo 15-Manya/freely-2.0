@@ -52,15 +52,10 @@ def parse_proposal_response(response_text: str) -> dict:
         # Parse JSON
         proposal = json.loads(json_str)
 
-        # Validate required fields
+        # Validate required top-level fields
         required_fields = [
-            "job_overview",
-            "summary_of_job_description",
-            "requirements_and_scope",
-            "ambiguity_and_loopholes",
-            "timeline_and_milestones",
-            "budget_and_payment_terms",
-            "additional_notes",
+            "project_analysis",
+            "proposal_data",
             "formatted_proposal"
         ]
         for field in required_fields:
@@ -86,13 +81,8 @@ def validate_proposal(proposal: dict) -> bool:
     """
     # Check required top-level sections
     required_sections = [
-        "job_overview",
-        "summary_of_job_description",
-        "requirements_and_scope",
-        "ambiguity_and_loopholes",
-        "timeline_and_milestones",
-        "budget_and_payment_terms",
-        "additional_notes",
+        "project_analysis",
+        "proposal_data",
         "formatted_proposal"
     ]
     
@@ -100,42 +90,74 @@ def validate_proposal(proposal: dict) -> bool:
         if section not in proposal:
             raise ValueError(f"Missing required section: {section}")
     
-    # Validate job_overview structure
-    job_overview = proposal.get("job_overview", {})
-    required_overview_fields = ["project_job_title", "client_name", "client_contact_info", "date_of_analysis"]
-    for field in required_overview_fields:
-        if field not in job_overview:
-            raise ValueError(f"Missing required field in job_overview: {field}")
+    # Validate project_analysis structure
+    project_analysis = proposal.get("project_analysis", {})
+    if not isinstance(project_analysis, dict):
+        raise ValueError("project_analysis must be an object/dictionary")
+    
+    required_analysis_fields = [
+        "client_goals",
+        "identified_risks_and_ambiguities",
+        "questions_for_clarification"
+    ]
+    for field in required_analysis_fields:
+        if field not in project_analysis:
+            raise ValueError(f"Missing required field in project_analysis: {field}")
+    
+    # Validate identified_risks_and_ambiguities (CRITICAL SECTION)
+    identified_risks = project_analysis.get("identified_risks_and_ambiguities", [])
+    if not isinstance(identified_risks, list):
+        raise ValueError("identified_risks_and_ambiguities must be an array")
+    if len(identified_risks) < 3:
+        raise ValueError(f"identified_risks_and_ambiguities must have at least 3 items (found {len(identified_risks)}). This is a critical section and cannot be empty or minimal.")
+    if any(not item or not isinstance(item, str) or len(item.strip()) < 20 for item in identified_risks):
+        raise ValueError("Each item in identified_risks_and_ambiguities must be a non-empty string with at least 20 characters. Generic or empty items are not acceptable.")
+    
+    # Validate questions_for_clarification (CRITICAL SECTION)
+    clarification_questions = project_analysis.get("questions_for_clarification", [])
+    if not isinstance(clarification_questions, list):
+        raise ValueError("questions_for_clarification must be an array")
+    if len(clarification_questions) < 3:
+        raise ValueError(f"questions_for_clarification must have at least 3 items (found {len(clarification_questions)}). This is a critical section and cannot be empty or minimal.")
+    if any(not item or not isinstance(item, str) or len(item.strip()) < 20 for item in clarification_questions):
+        raise ValueError("Each item in questions_for_clarification must be a non-empty string with at least 20 characters. Generic or empty questions are not acceptable.")
+    
+    # Validate proposal_data structure
+    proposal_data = proposal.get("proposal_data", {})
+    if not isinstance(proposal_data, dict):
+        raise ValueError("proposal_data must be an object/dictionary")
+    
+    required_data_fields = [
+        "project_details",
+        "project_goals",
+        "scope_deliverables",
+        "process_steps",
+        "client_requirements",
+        "timeline",
+        "pricing"
+    ]
+    for field in required_data_fields:
+        if field not in proposal_data:
+            raise ValueError(f"Missing required field in proposal_data: {field}")
+    
+    # Validate arrays in proposal_data
+    scope_deliverables = proposal_data.get("scope_deliverables", [])
+    if not isinstance(scope_deliverables, list):
+        raise ValueError("scope_deliverables must be an array")
+    
+    process_steps = proposal_data.get("process_steps", [])
+    if not isinstance(process_steps, list):
+        raise ValueError("process_steps must be an array")
+    
+    client_requirements = proposal_data.get("client_requirements", [])
+    if not isinstance(client_requirements, list):
+        raise ValueError("client_requirements must be an array")
     
     # Validate formatted_proposal is a string
     if not isinstance(proposal.get("formatted_proposal"), str):
         raise ValueError("formatted_proposal must be a string")
-    
-    # Validate ambiguity_and_loopholes has arrays with content (CRITICAL SECTION)
-    ambiguity = proposal.get("ambiguity_and_loopholes", {})
-    if not isinstance(ambiguity, dict):
-        raise ValueError("ambiguity_and_loopholes must be an object/dictionary")
-    
-    unclear_requirements = ambiguity.get("unclear_missing_conflicting_requirements", [])
-    if not isinstance(unclear_requirements, list):
-        raise ValueError("unclear_missing_conflicting_requirements must be an array")
-    if len(unclear_requirements) < 3:
-        raise ValueError(f"unclear_missing_conflicting_requirements must have at least 3 items (found {len(unclear_requirements)}). This is a critical section and cannot be empty or minimal.")
-    if any(not item or not isinstance(item, str) or len(item.strip()) < 20 for item in unclear_requirements):
-        raise ValueError("Each item in unclear_missing_conflicting_requirements must be a non-empty string with at least 20 characters. Generic or empty items are not acceptable.")
-    
-    clarification_questions = ambiguity.get("client_questions_for_clarification", [])
-    if not isinstance(clarification_questions, list):
-        raise ValueError("client_questions_for_clarification must be an array")
-    if len(clarification_questions) < 3:
-        raise ValueError(f"client_questions_for_clarification must have at least 3 items (found {len(clarification_questions)}). This is a critical section and cannot be empty or minimal.")
-    if any(not item or not isinstance(item, str) or len(item.strip()) < 20 for item in clarification_questions):
-        raise ValueError("Each item in client_questions_for_clarification must be a non-empty string with at least 20 characters. Generic or empty questions are not acceptable.")
-    
-    # Validate budget_and_payment_terms has negotiation_points array
-    budget = proposal.get("budget_and_payment_terms", {})
-    if not isinstance(budget.get("suggested_negotiation_points", []), list):
-        raise ValueError("suggested_negotiation_points must be an array")
+    if not proposal.get("formatted_proposal").strip():
+        raise ValueError("formatted_proposal cannot be empty")
     
     return True
 
